@@ -10,6 +10,10 @@ AwesomeChartJS is a small JavaScript chart rendering library based on the HTML 5
 * Exploded pie charts (whole or part)
 * Ring/Doughnut charts (whole or part)
 
+##Demo
+
+<a href="http://cyberpython.github.com/AwesomeChartJS/" target="_blank">Go to demos page</a>
+
 ##Usage
 See demo.html
 
