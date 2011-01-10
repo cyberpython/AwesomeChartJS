@@ -464,12 +464,16 @@ function AwesomeChart(canvasElementId){
         var pieAreaWidth = this.width - this.marginLeft - this.marginRight;
         var pieAreaHeight = this.height - this.marginTop - this.marginBottom;
         
-        if(this.title!=null){
+        if(this.title){
             pieAreaHeight = pieAreaHeight - this.titleFontHeight - this.titleMargin;
         }
         
         var centerX = this.width / 2;
-        var centerY = this.marginTop + this.titleFontHeight + this.titleMargin + (pieAreaHeight / 2);
+        var centerY = this.marginTop + (pieAreaHeight / 2);
+        
+        if(this.title){
+            centerY += this.titleFontHeight + this.titleMargin;
+        }
 
         var doublePI = 2 * Math.PI;
         var radius = (Math.min( pieAreaWidth, pieAreaHeight) / 2);
@@ -647,7 +651,11 @@ function AwesomeChart(canvasElementId){
         }
         
         var centerX = this.width / 2;
-        var centerY = this.marginTop + this.titleFontHeight + this.titleMargin + (pieAreaHeight / 2);
+        var centerY = this.marginTop + (pieAreaHeight / 2);
+        
+        if(this.title){
+            centerY += this.titleFontHeight + this.titleMargin;
+        }
 
         var doublePI = 2 * Math.PI;
         var radius = (Math.min( pieAreaWidth, pieAreaHeight) / 2);
@@ -680,7 +688,7 @@ function AwesomeChart(canvasElementId){
             context.rotate(currentAngle);
          
             context.rotate(incAngleBy/2);
-            context.translate(20,0);
+            context.translate(10,0);
             context.rotate(-incAngleBy/2);
             
             context.beginPath();
