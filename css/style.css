@@ -86,7 +86,7 @@ a:hover{
     display: none;
 }
 
-.slide:first-of-type{
+#first_slide{
     display: block;
 }
 
@@ -120,6 +120,10 @@ a:hover{
    top: -35px;
 }
 
+#demo_tab{
+    display: none;
+}
+
 #tabs>div{
     height: 35px;
     width: 800px;
@@ -143,7 +147,7 @@ a:hover{
     
 }
 
-#tabs>div .tab:first-of-type{
+#home_tab{
     margin-left: 0px;
 }
 

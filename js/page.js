@@ -9,6 +9,7 @@ $(document).ready(function(){
     $("#tabs>div .tab:first-of-type a").addClass('selected');
     $(".content").addClass('hidden');
     $("#home").removeClass('hidden');
+    $("#demo_tab").css('display', 'block');
     
     $("#home_tab").click(function(e){
         e.preventDefault();
