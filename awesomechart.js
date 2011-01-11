@@ -50,6 +50,10 @@ function AwesomeChart(canvasElementId){
     
     this.numberOfDecimals = 0;
     
+    this.proportionalSizes = true;
+    this.widthSizeFactor = this.width/400;
+    this.heightSizeFactor = this.height/400;
+    
     this.chartType = 'bar';
     this.randomColors = false;
     
@@ -61,6 +65,7 @@ function AwesomeChart(canvasElementId){
     this.labelMargin = 10;
     this.dataValueMargin = 20;
     this.titleMargin = 10;
+    this.yAxisLabelMargin = 5;
     
     this.data = new Array();
     this.labels = new Array();
@@ -69,30 +74,33 @@ function AwesomeChart(canvasElementId){
     
     this.backgroundFillStyle = 'rgba(255,255,255,0)';
     this.borderStrokeStyle = 'rgba(255,255,255,0)';
+    this.borderWidth = 1.0;
     
     this.labelFillStyle = 'rgb(220, 36, 0)';
-    this.labelFont = '12px sans-serif';
+    this.labelFont = 'sans-serif';
     this.labelFontHeight = 12;
+    this.labelFontStyle = '';
     
     this.dataValueFillStyle = '#333';
-    this.dataValueFont = '15px sans-serif';
+    this.dataValueFont = 'sans-serif';
     this.dataValueFontHeight = 15;
+    this.dataValueFontStyle = '';
     
     this.titleFillStyle = '#333';
-    this.titleFont = 'bold 16px sans-serif';
+    this.titleFont = 'sans-serif';
     this.titleFontHeight = 16;
+    this.titleFontStyle = 'bold';
     
     this.yAxisLabelFillStyle = '#333';
-    this.yAxisLabelFont = '10px sans-serif';
+    this.yAxisLabelFont = 'sans-serif';
     this.yAxisLabelFontHeight = 10;
-    this.yAxisLabelMargin = 5;
+    this.yAxisLabelFontStyle = '';
     
     var lingrad = this.ctx.createLinearGradient(0,0,0,this.height);
     lingrad.addColorStop(0.2, '#fdfdfd');
     lingrad.addColorStop(0.8, '#ededed');
     
     this.chartBackgroundFillStyle = lingrad;
-    //this.chartBackgroundFillStyle = '#f8f8f8';
     this.chartBorderStrokeStyle = '#999';
     this.chartBorderLineWidth = 1;
     this.chartHorizontalLineStrokeStyle = '#999';
@@ -110,6 +118,7 @@ function AwesomeChart(canvasElementId){
     
     this.barFillStyle = 'rgb(220, 36, 0)';
     this.barStrokeStyle = '#fff';
+    this.barBorderWidth = 2.0;
     this.barShadowColor = 'rgba(0, 0, 0, 0.5)';
     this.barShadowBlur = 5;
     this.barShadowOffsetX = 3.0;
@@ -117,9 +126,12 @@ function AwesomeChart(canvasElementId){
     
     this.barHGap = 20;
     this.barVGap = 20;
+    
+    this.explosionOffset = 20;
 
     this.pieFillStyle = 'rgb(220, 36, 0)';
     this.pieStrokeStyle = '#fff';
+    this.pieBorderWidth = 2.0;
     this.pieShadowColor = 'rgba(0, 0, 0, 0.5)';
     this.pieShadowBlur = 5;
     this.pieShadowOffsetX = 3.0;
@@ -140,6 +152,23 @@ function AwesomeChart(canvasElementId){
     this.draw = function(){
         var context = this.ctx;
         context.lineCap = 'round';
+        var minFactor = Math.min(this.widthSizeFactor, this.heightSizeFactor);
+        
+        if(this.proportionalSizes){            
+            this.labelMargin = this.labelMargin * this.heightSizeFactor;
+            this.dataValueMargin = this.dataValueMargin * this.heightSizeFactor;
+            this.titleMargin = this.titleMargin * this.heightSizeFactor;
+            this.yAxisLabelMargin = this.yAxisLabelMargin * this.heightSizeFactor;
+            
+            this.labelFontHeight = this.labelFontHeight * this.heightSizeFactor;
+            this.dataValueFontHeight = this.dataValueFontHeight * this.heightSizeFactor;
+            this.titleFontHeight = this.titleFontHeight * this.heightSizeFactor;
+            this.yAxisLabelFontHeight = this.yAxisLabelFontHeight * this.heightSizeFactor;
+            
+            this.barHGap = this.barHGap * this.widthSizeFactor;
+            this.barVGap = this.barHGap * this.heightSizeFactor;
+            this.explosionOffset = this.explosionOffset * minFactor;
+        }
         
         if(this.randomColors){
             for(var i=0; i<this.data.length; i++){
@@ -167,7 +196,7 @@ function AwesomeChart(canvasElementId){
         if(this.title!=null){
             //Draw the title:
             
-            context.font = this.titleFont;
+            context.font = this.titleFontStyle + ' ' + this.titleFontHeight + 'px '+ this.titleFont;
             context.fillStyle = this.titleFillStyle;
             context.textAlign = 'center';
             context.textBaseline = 'bottom';
@@ -176,7 +205,7 @@ function AwesomeChart(canvasElementId){
         
         //Draw the outer border:
         
-        context.lineWidth = 1.0;
+        context.lineWidth = this.borderWidth;
         context.strokeStyle = this.borderStrokeStyle;
         context.strokeRect(0, 0, this.width, this.height);
         
@@ -244,7 +273,7 @@ function AwesomeChart(canvasElementId){
                 context.fillStyle = this.barFillStyle;
             }
             context.strokeStyle = this.barStrokeStyle;
-            context.lineWidth = 2.0;
+            context.lineWidth = this.barBorderWidth;
             
             context.beginPath();
             context.moveTo(x, y);
@@ -264,7 +293,7 @@ function AwesomeChart(canvasElementId){
             
             //Draw the label:
             
-            context.font = this.labelFont;
+            context.font = this.labelFontStyle + ' ' + this.labelFontHeight + 'px '+ this.labelFont;
             if(this.colors[i]){
                 context.fillStyle = this.colors[i];
             }else{
@@ -283,7 +312,7 @@ function AwesomeChart(canvasElementId){
             
             //Draw the data value:
             
-            context.font = this.dataValueFont;
+            context.font = this.dataValueFontStyle + ' ' + this.dataValueFontHeight + 'px '+ this.dataValueFont;
             context.fillStyle = this.dataValueFillStyle;
             context.textAlign = 'center';
             if(di>=0){
@@ -323,7 +352,7 @@ function AwesomeChart(canvasElementId){
         var barWidth = (this.width - this.marginLeft
             - this.marginRight - (n-1) * this.barHGap) / n;
 
-        context.font = this.labelFont;
+        context.font = this.labelFontStyle + ' ' + this.labelFontHeight + 'px '+ this.labelFont;
         var maxLabelWidth = 0;
         var labelWidth = 0;
         for(var i=0; i<this.labels.length; i++){
@@ -333,7 +362,7 @@ function AwesomeChart(canvasElementId){
             }
         }
 
-        context.font = this.dataValueFont;
+        context.font = this.dataValueFontStyle + ' ' + this.dataValueFontHeight + 'px '+ this.dataValueFont;
         var maxDataValueWidth = 0;
         var dataValueWidth = 0;
         for(var i=0; i<this.data.length; i++){
@@ -379,7 +408,7 @@ function AwesomeChart(canvasElementId){
                 context.fillStyle = this.barFillStyle;
             }
             context.strokeStyle = this.barStrokeStyle;
-            context.lineWidth = 2.0;
+            context.lineWidth = this.barBorderWidth;
             
             context.beginPath();
             context.moveTo(x, y);
@@ -399,7 +428,7 @@ function AwesomeChart(canvasElementId){
             
             //Draw the label:
             
-            context.font = this.labelFont;
+            context.font = this.labelFontStyle + ' ' + this.labelFontHeight + 'px '+ this.labelFont;
             if(this.colors[i]){
                 context.fillStyle = this.colors[i];
             }else{
@@ -423,7 +452,7 @@ function AwesomeChart(canvasElementId){
 
             //Draw the data value:
             
-            context.font = this.dataValueFont;
+            context.font = this.dataValueFontStyle + ' ' + this.dataValueFontHeight + 'px '+ this.dataValueFont;
             context.fillStyle = this.dataValueFillStyle;
             context.textBaseline = 'bottom';
             if(di>=0){
@@ -446,7 +475,7 @@ function AwesomeChart(canvasElementId){
 
     this.drawPieChart = function(ring){
         var context = this.ctx;
-        context.lineWidth = 2;
+        context.lineWidth = this.pieBorderWidth;
 
         var dataSum = 0;
         if(this.pieTotal == null){
@@ -478,7 +507,7 @@ function AwesomeChart(canvasElementId){
         var doublePI = 2 * Math.PI;
         var radius = (Math.min( pieAreaWidth, pieAreaHeight) / 2);
         
-        context.font = this.labelFont;
+        context.font = this.labelFontStyle + ' ' + this.labelFontHeight + 'px '+ this.labelFont;
         var maxLabelWidth = 0;
         var labelWidth = 0;
         for(var i=0; i<this.labels.length; i++){
@@ -602,7 +631,7 @@ function AwesomeChart(canvasElementId){
             context.translate(centerX, centerY);
             context.rotate(mAngle);
             
-            context.font = this.labelFont;
+            context.font = this.labelFontStyle + ' ' + this.labelFontHeight + 'px '+ this.labelFont;
             if(this.colors[i]){
                 context.fillStyle = this.colors[i];
             }else{
@@ -628,7 +657,7 @@ function AwesomeChart(canvasElementId){
     
     this.drawExplodedPieChart = function(){
         var context = this.ctx;
-        context.lineWidth = 2;
+        context.lineWidth = this.pieBorderWidth;
 
         var dataSum = 0;
         if(this.pieTotal == null){
@@ -660,7 +689,7 @@ function AwesomeChart(canvasElementId){
         var doublePI = 2 * Math.PI;
         var radius = (Math.min( pieAreaWidth, pieAreaHeight) / 2);
         
-        context.font = this.labelFont;
+        context.font = this.labelFontStyle + ' ' + this.labelFontHeight + 'px '+ this.labelFont;
         var maxLabelWidth = 0;
         var labelWidth = 0;
         for(var i=0; i<this.labels.length; i++){
@@ -688,7 +717,7 @@ function AwesomeChart(canvasElementId){
             context.rotate(currentAngle);
          
             context.rotate(incAngleBy/2);
-            context.translate(10,0);
+            context.translate(this.explosionOffset,0);
             context.rotate(-incAngleBy/2);
             
             context.beginPath();
@@ -720,7 +749,7 @@ function AwesomeChart(canvasElementId){
             
             context.rotate(incAngleBy/2);
             
-            context.font = this.labelFont;
+            context.font = this.labelFontStyle + ' ' + this.labelFontHeight + 'px '+ this.labelFont;
             if(this.colors[i]){
                 context.fillStyle = this.colors[i];
             }else{
@@ -777,7 +806,7 @@ function AwesomeChart(canvasElementId){
         
         // Find the widest Y-axis value's width:
         
-        context.font = this.yAxisLabelFont;
+        context.font = this.yAxisLabelFontStyle + ' ' + this.yAxisLabelFontHeight + 'px '+ this.yAxisLabelFont;
         var maxYAxisLabelWidth = 0;
         var yAxisLabelWidth = 0;
         for(var i=0; i<yAxisValues.length; i++){
@@ -820,7 +849,7 @@ function AwesomeChart(canvasElementId){
         var lineY = 0;
         
         context.lineWidth = this.chartHorizontalLineWidth;
-        context.font = this.yAxisLabelFont;
+        context.font = this.yAxisLabelFontStyle + ' ' + this.yAxisLabelFontHeight + 'px '+ this.yAxisLabelFont;
         
         for(var i=0; i<=10; i++){
             lineY = i*yStep;
@@ -885,7 +914,7 @@ function AwesomeChart(canvasElementId){
                 context.fillStyle = this.barFillStyle;
             }
             context.strokeStyle = this.barStrokeStyle;
-            context.lineWidth = 2.0;
+            context.lineWidth = this.barBorderWidth;
             
             context.beginPath();
             context.moveTo(x, y);
@@ -924,7 +953,7 @@ function AwesomeChart(canvasElementId){
             
             // Draw the label:
             
-            context.font = this.labelFont;
+            context.font = this.labelFontStyle + ' ' + this.labelFontHeight + 'px '+ this.labelFont;
             if(this.colors[i]){
                 context.fillStyle = this.colors[i];
             }else{
@@ -943,7 +972,7 @@ function AwesomeChart(canvasElementId){
             
             // Draw the data value:
             
-            context.font = this.dataValueFont;
+            context.font = this.dataValueFontStyle + ' ' + this.dataValueFontHeight + 'px '+ this.dataValueFont;
             context.fillStyle = this.dataValueFillStyle;
             context.textAlign = 'center';
             if(this.data[i]>=0){
