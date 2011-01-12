@@ -28,6 +28,15 @@ $(document).ready(function(){
         $("#chart_types").removeClass('hidden');
         $("#chart_types_tab").addClass('selected');
     });
+    
+    $("#examples_tab").click(function(e){
+        e.preventDefault();
+        $(".content").addClass('hidden');
+        $("#tabs>div .tab a").removeClass('selected');
+        
+        $("#examples").removeClass('hidden');
+        $("#examples_tab").addClass('selected');
+    });
 
     $("#spotlight_slider").children().each(function(){
         slides.push(this);
@@ -80,6 +89,26 @@ function drawCharts(){
         chart2.borderStrokeStyle = '#333';
         chart2.marginBottom = 1;
         chart2.draw();
+        
+        var mychart = new AwesomeChart('canvas1');
+        mychart.title = "Product Sales - 2010";
+        mychart.data = [1532, 3251, 3460, 1180, 6543];
+        mychart.labels = ["Desktops", "Laptops", "Netbooks", "Tablets", "Smartphones"];
+        mychart.draw();
+        
+        var mychart2 = new AwesomeChart('canvas2');
+        mychart2.title = "Product Sales - 2010";
+        mychart2.data = [1532, 3251, 3460, 1180, 6543];
+        mychart2.labels = ["Desktops", "Laptops", "Netbooks", "Tablets", "Smartphones"];
+        mychart2.chartType = 'doughnut';
+        mychart2.draw();
+        
+        var mychart3 = new AwesomeChart('canvas3');
+        mychart3.title = "Product Sales - 2010";
+        mychart3.data = [1532, 3251, 3460, 1180, 6543];
+        mychart3.labels = ["Desktops", "Laptops", "Netbooks", "Tablets", "Smartphones"];
+        mychart3.chartType = 'pareto';
+        mychart3.draw();
     
     }
 }
