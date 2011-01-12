@@ -14,9 +14,9 @@
 *   limitations under the License.
 */
 
-Array.prototype.numericSortReverse = function(){
+Array.prototype.numericSortReverse = function(data){
     this.sort(function(a, b){
-        return b - a;
+        return data[b] - data[a];
     });
 }
 
@@ -180,7 +180,7 @@ function AwesomeChart(canvasElementId){
         
         if(this.chartType == "pie"){
              this.drawPieChart(false);
-        }else if(this.chartType == "ring"){
+        }else if( (this.chartType == "ring") || (this.chartType == "doughnut")){
              this.drawPieChart(true);
         }else if(this.chartType == "exploded pie"){
              this.drawExplodedPieChart();
@@ -784,14 +784,22 @@ function AwesomeChart(canvasElementId){
         
         var n = this.data.length;
         
-        this.data.numericSortReverse();
-        var maxData = this.data[0];
-        var minData = this.data[this.data.length-1];
+        var indices = new Array();
+        for (var i = 0; i < this.data.length; i++){
+            indices.push(i);
+        }
+        
+        indices.numericSortReverse(this.data);
+        
+        
+        
+        var maxData = this.data[indices[0]];
+        var minData = this.data[indices[indices.length-1]];
         
         var dataSum = 0;
         for (var i = 0; i < this.data.length; i++){
-            dataSum += this.data[i];
-            if(this.data[i]<0){
+            dataSum += this.data[indices[i]];
+            if(this.data[indices[i]]<0){
                 return;
             }
         }
@@ -904,7 +912,7 @@ function AwesomeChart(canvasElementId){
         
         for(var i=0; i<this.data.length; i++){
             
-            barHeight = this.data[i] * chartHeight / dataSum;
+            barHeight = this.data[indices[i]] * chartHeight / dataSum;
             
             //Draw the bar:
             
@@ -960,13 +968,13 @@ function AwesomeChart(canvasElementId){
                 context.fillStyle = this.labelFillStyle;
             }
             context.textAlign = 'center';
-            if(this.labels[i]){
-                if(this.data[i]>=0){
+            if(this.labels[indices[i]]){
+                if(this.data[indices[i]]>=0){
                     context.textBaseline = 'bottom';
-                    context.fillText(this.labels[i], x + halfBarWidth, - barHeight - this.labelMargin, barWidth);
+                    context.fillText(this.labels[indices[i]], x + halfBarWidth, - barHeight - this.labelMargin, barWidth);
                 }else{
                     context.textBaseline = 'top';
-                    context.fillText(this.labels[i], x + halfBarWidth, - barHeight + this.labelMargin, barWidth);
+                    context.fillText(this.labels[indices[i]], x + halfBarWidth, - barHeight + this.labelMargin, barWidth);
                 }
             }
             
@@ -975,12 +983,12 @@ function AwesomeChart(canvasElementId){
             context.font = this.dataValueFontStyle + ' ' + this.dataValueFontHeight + 'px '+ this.dataValueFont;
             context.fillStyle = this.dataValueFillStyle;
             context.textAlign = 'center';
-            if(this.data[i]>=0){
+            if(this.data[indices[i]]>=0){
                 context.textBaseline = 'bottom';
-                context.fillText(this.data[i], x + halfBarWidth, - barHeight - this.labelMargin - this.dataValueMargin, barWidth);
+                context.fillText(this.data[indices[i]], x + halfBarWidth, - barHeight - this.labelMargin - this.dataValueMargin, barWidth);
             }else{
                 context.textBaseline = 'top';
-                context.fillText(this.data[i], x + halfBarWidth, - barHeight + this.labelMargin + this.dataValueMargin, barWidth);
+                context.fillText(this.data[indices[i]], x + halfBarWidth, - barHeight + this.labelMargin + this.dataValueMargin, barWidth);
             }
             
             
@@ -1004,7 +1012,7 @@ function AwesomeChart(canvasElementId){
         context.fill();
         
         for(var i=0; i<this.data.length; i++){
-            barHeight = this.data[i] * chartHeight / dataSum;
+            barHeight = this.data[indices[i]] * chartHeight / dataSum;
             x2 = x1;
             y2 = y1;
             x1 = x + barWidth;
