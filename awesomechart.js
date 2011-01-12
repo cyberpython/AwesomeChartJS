@@ -160,10 +160,10 @@ function AwesomeChart(canvasElementId){
             this.titleMargin = this.titleMargin * this.heightSizeFactor;
             this.yAxisLabelMargin = this.yAxisLabelMargin * this.heightSizeFactor;
             
-            this.labelFontHeight = this.labelFontHeight * this.heightSizeFactor;
-            this.dataValueFontHeight = this.dataValueFontHeight * this.heightSizeFactor;
-            this.titleFontHeight = this.titleFontHeight * this.heightSizeFactor;
-            this.yAxisLabelFontHeight = this.yAxisLabelFontHeight * this.heightSizeFactor;
+            this.labelFontHeight = this.labelFontHeight * minFactor;
+            this.dataValueFontHeight = this.dataValueFontHeight * minFactor;
+            this.titleFontHeight = this.titleFontHeight * minFactor;
+            this.yAxisLabelFontHeight = this.yAxisLabelFontHeight * minFactor;
             
             this.barHGap = this.barHGap * this.widthSizeFactor;
             this.barVGap = this.barHGap * this.heightSizeFactor;
