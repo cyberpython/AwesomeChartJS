@@ -52,7 +52,7 @@ a:hover{
 #header>div h1{
     margin: 0px;
     padding: 0px;
-    margin-top: 0px;
+    margin-top: 5px;
     font-weight: normal;
     font-size: 36pt;
     font-family: serif;
@@ -205,6 +205,13 @@ a:hover{
     margin: 5px 10px;
 }
 
+p.note{
+    font-style: italic;
+    font-size: 90%;
+    width: 600px;
+    margin: 15px auto;
+}
+
 .content.hidden{
     display: none;
 }
@@ -252,11 +259,14 @@ a:hover{
 }
 
 pre.code{
+    background: #222;
     max-width: 760px;
     width: 750px;
     margin: 10px 10px;
+    padding: 15px;
     overflow: auto;
-    border-left: 10px solid #999;
+    border: 1px dashed #eee; 
+    border-left: 10px solid #eee;
 }
 
 .small_chart_container{
