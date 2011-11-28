@@ -147,6 +147,24 @@ function AwesomeChart(canvasElementId){
         }
         return 'rgb('+rgb.join(",")+')';
     }
+    
+    /*Set the chart's data in the format: 
+    *
+    *   {
+    *       "label-1": data-value-1,
+    *       "label-2": data-value-2,
+    *       "label-3": data-value-3,
+    *               ....
+    *       "label-N": data-value-N,
+    *   }
+    *
+    */
+    this.setChartDataFromJSON = function(jsonObj){
+       for(var p in jsonObj){
+           this.labels.push(p);
+           this.data.push(jsonObj[p]);
+       }
+    }
 
 
     this.draw = function(){
