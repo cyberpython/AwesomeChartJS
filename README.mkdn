@@ -24,4 +24,6 @@ Copyright (c) 2011 Georgios Migdos <cyberpython@gmail.com>
 Source code is available under the terms of the [Apache license v2.0](http://www.apache.org/licenses/LICENSE-2.0).
 
 
+##Contributors
 
+* [pkozlowski-opensource](https://github.com/pkozlowski-opensource)
