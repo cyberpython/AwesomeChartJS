@@ -43,7 +43,7 @@ Array.prototype.min = function() {
 }
 
 function AwesomeChart(canvasElementId){
-    var canvas = document.getElementById(canvasElementId);
+    var canvas = (typeof canvasElementId === 'string') ? document.getElementById(canvasElementId) : canvasElementId;
     this.ctx = canvas.getContext('2d');
     this.width = this.ctx.canvas.width;
     this.height = this.ctx.canvas.height;
