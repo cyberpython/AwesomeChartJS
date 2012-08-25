@@ -657,7 +657,7 @@ function AwesomeChart(canvasElementId){
             }
             context.textAlign = 'start';
             if(this.labels[i]){
-                if( (currentAngle>Math.PI/2) && (currentAngle<=3*(Math.PI/2)) ){
+                if( (mAngle>Math.PI/2) && (mAngle<=3*(Math.PI/2)) ){
                     var translateXBy = radius + this.labelMargin + context.measureText(this.labels[i]).width / 2;
                     context.translate(translateXBy, 0);
                     context.rotate(Math.PI);
