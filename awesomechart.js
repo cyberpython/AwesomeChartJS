@@ -722,21 +722,22 @@ function AwesomeChart(canvasElementId){
         var currentAngle = this.pieStart* doublePI / dataSum;
         var endAngle = 0;
         var incAngleBy = 0;
-        var halfAngle = incAngleBy/2;
-        
-        
+        var halfAngle = 0;
+        var mAngle = 0;
         for(var i=0; i<this.data.length; i++){
             
             context.save();
             incAngleBy = this.data[i] * doublePI / dataSum;
             endAngle = currentAngle + incAngleBy;
+            halfAngle = incAngleBy/2;
+            mAngle = currentAngle +  halfAngle;
             
             context.translate(centerX, centerY);
             context.rotate(currentAngle);
          
-            context.rotate(incAngleBy/2);
+            context.rotate(halfAngle);
             context.translate(this.explosionOffset,0);
-            context.rotate(-incAngleBy/2);
+            context.rotate(-halfAngle);
             
             context.beginPath();
             context.moveTo(0,0);
@@ -765,7 +766,7 @@ function AwesomeChart(canvasElementId){
             
             // Draw the label:
             
-            context.rotate(incAngleBy/2);
+            context.rotate(halfAngle);
             
             context.font = this.labelFontStyle + ' ' + this.labelFontHeight + 'px '+ this.labelFont;
             if(this.colors[i]){
@@ -775,7 +776,7 @@ function AwesomeChart(canvasElementId){
             }
             context.textAlign = 'start';
             if(this.labels[i]){
-                if( (currentAngle>Math.PI/2) && (currentAngle<=3*(Math.PI/2)) ){
+                if( (mAngle>Math.PI/2) && (mAngle<=3*(Math.PI/2)) ){
                     var translateXBy = radius + this.labelMargin + context.measureText(this.labels[i]).width / 2;
                     context.translate(translateXBy, 0);
                     context.rotate(Math.PI);
