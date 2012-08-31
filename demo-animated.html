@@ -171,6 +171,8 @@
             chart1.labels = ['IE','Firefox','Chrome','Safari','Opera','Other'];
             chart1.colors = ['#006CFF', '#FF6600', '#34A038', '#945D59', '#93BBF4', '#F493B8'];
             chart1.randomColors = true;
+            chart1.animate = true;
+            chart1.animationFrames = 20;
             chart1.draw();
             
             var chart2 = new AwesomeChart('chartCanvas2');
@@ -179,6 +181,8 @@
             chart2.labels = ['IE 8','IE 7','IE 6'];
             chart2.barFillStyle = chart1.colors[0];
             chart2.labelFillStyle = chart1.colors[0];
+            chart2.animate = true;
+            chart2.animationFrames = 20;
             chart2.draw();
             
             var chart3 = new AwesomeChart('chartCanvas3');

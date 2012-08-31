@@ -175,7 +175,7 @@ function AwesomeChart(canvasElementId){
         context.lineCap = 'round';
         var minFactor = Math.min(this.widthSizeFactor, this.heightSizeFactor);
         
-        if(this.proportionalSizes){
+        if(this.proportionalSizes){            
             this.labelMargin = this.labelMargin * this.heightSizeFactor;
             this.dataValueMargin = this.dataValueMargin * this.heightSizeFactor;
             this.titleMargin = this.titleMargin * this.heightSizeFactor;
@@ -222,14 +222,18 @@ function AwesomeChart(canvasElementId){
         }else if(this.chartType == "pareto"){
             this.drawParetoChart();
         }else{
-            this.drawBarChart();
+            if(this.animate) {
+                this.animateBarChart();
+            }else{
+                this.drawBarChart();
+            }
         }
 
         this.drawTitleAndBorders();
-
+        
     }
-
-
+    
+    
     this.drawTitleAndBorders = function() {
         var context = this.ctx;
         
@@ -367,6 +371,90 @@ function AwesomeChart(canvasElementId){
             
             x = x + barWidth + this.barHGap;
         }
+    }
+    
+    
+    this.animateBarChart = function() {
+        var aw = this,
+            numFrames = this.animationFrames,
+            currentFrame = 0,
+            
+            maxData = this.data.max(),
+            minData = this.data.min(),
+            
+            barMaxTopY = this.marginTop + this.labelMargin + this.labelFontHeight + this.dataValueMargin + this.dataValueFontHeight,
+            barMinTopY = barBottomY = this.height - this.marginBottom;
+        
+        if(this.title!=null){
+            barMaxTopY += this.titleFontHeight + this.titleMargin;
+        }
+        
+        if(minData<0){
+            barMinTopY = this.height - this.marginBottom - this.labelMargin - this.labelFontHeight - this.dataValueMargin - this.dataValueFontHeight;
+            
+            barBottomY = barMinTopY + ((this.height - this.marginBottom -  barMaxTopY - this.labelMargin - this.labelFontHeight - this.dataValueMargin - this.dataValueFontHeight) * minData) / (Math.abs(minData)+maxData);
+        }
+        
+        var chartAreaHeight = barMinTopY - barMaxTopY,
+            changeOfMarginBottom = 0,
+            changeOfMarginTop = 0;
+            
+        var belowZeroMaxBarHeight = 0;
+        if(minData<0){
+            var maxBarHeight = Math.max(Math.abs(barBottomY - barMaxTopY), Math.abs(barBottomY - barMinTopY)),
+                maxBarAbsData = Math.max(Math.abs(minData), Math.abs(maxData));
+            belowZeroMaxBarHeight = Math.abs(minData * maxBarHeight / maxBarAbsData + this.labelMargin + this.labelFontHeight);
+        }
+        
+        this.marginBottom += belowZeroMaxBarHeight;
+        if(this.title!=null){
+            this.titleMargin += chartAreaHeight - belowZeroMaxBarHeight;
+        }else{
+            this.marginTop += chartAreaHeight - belowZeroMaxBarHeight;
+        }
+        changeOfMarginBottom = belowZeroMaxBarHeight / numFrames;
+        changeOfMarginTop = (chartAreaHeight - belowZeroMaxBarHeight) / numFrames;
+        
+        var updateBarChart = function() {
+            if(currentFrame++ < numFrames) {
+
+                aw.marginBottom -= changeOfMarginBottom;
+                
+                if(aw.title!=null){
+                    aw.titleMargin -= changeOfMarginTop;
+                }else{
+                    aw.marginTop -= changeOfMarginTop;
+                }
+                
+                aw.ctx.clearRect(0, 0, aw.width, aw.height);
+                aw.drawBarChart();
+                aw.drawTitleAndBorders();                
+                
+                // Standard
+                if (typeof(window.requestAnimationFrame) == 'function') {
+                    window.requestAnimationFrame(updateBarChart);
+
+                // IE 10+
+                } else if (typeof(window.msRequestAnimationFrame) == 'function') {
+                    window.msRequestAnimationFrame(updateBarChart);
+
+                // Chrome
+                } else if (typeof(window.webkitRequestAnimationFrame) == 'function') {
+                    window.webkitRequestAnimationFrame(updateBarChart);
+
+                // Firefox
+                } else if (window.mozRequestAnimationFrame) { // Seems rather slow in FF6 - so disabled
+                    window.mozRequestAnimationFrame(updateBarChart);
+
+                // Default fallback to setTimeout
+                } else {
+                    setTimeout(updateBarChart, 16.6666666);
+                }
+            }
+        }        
+
+        updateBarChart();
+        
     }
     
     
@@ -862,11 +950,8 @@ function AwesomeChart(canvasElementId){
         
         var updatePieChart = function() {
             if(currentFrame++ < numFrames) {
-                if(pieType == "exploded") {
-                    aw.ctx.clearRect(0, 0, aw.width, aw.height);
-                }else{
-                    aw.ctx.clearRect(marginLeft, marginTop, pieAreaWidth, pieAreaHeight);
-                }
+                
+                aw.ctx.clearRect(0, 0, aw.width, aw.height);
                 aw.pieTotal = (dataSum * (numFrames / currentFrame)) * (pieTotalReal / dataSum);
                 if(pieType == "pie") {
                     aw.drawPieChart(false);
@@ -874,8 +959,8 @@ function AwesomeChart(canvasElementId){
                     aw.drawPieChart(true);
                 }else if(pieType == "exploded") {
                     aw.drawExplodedPieChart();
-                    aw.drawTitleAndBorders();
                 }
+                aw.drawTitleAndBorders();
                 
                 // Standard
                 if (typeof(window.requestAnimationFrame) == 'function') {
