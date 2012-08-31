@@ -56,6 +56,9 @@ function AwesomeChart(canvasElementId){
     
     this.chartType = 'bar';
     this.randomColors = false;
+
+    this.animate = false;
+    this.animationFrames = 60;
     
     this.marginTop = 10;
     this.marginBottom = 10;
@@ -197,11 +200,19 @@ function AwesomeChart(canvasElementId){
         }
         
         if(this.chartType == "pie"){
-             this.drawPieChart(false);
+            if(this.animate){
+                this.animatePieChart(false);
+            }else{
+                this.drawPieChart(false);
+            }
         }else if( (this.chartType == "ring") || (this.chartType == "doughnut")){
-             this.drawPieChart(true);
+            if(this.animate){
+                this.animatePieChart(true);
+            }else{
+                this.drawPieChart(true);
+            }
         }else if(this.chartType == "exploded pie"){
-             this.drawExplodedPieChart();
+            this.drawExplodedPieChart();
         }else if(this.chartType == "horizontal bars"){
             this.drawVerticalBarChart();
         }else if(this.chartType == "pareto"){
@@ -495,15 +506,18 @@ function AwesomeChart(canvasElementId){
         var context = this.ctx;
         context.lineWidth = this.pieBorderWidth;
 
-        var dataSum = 0;
-        if(this.pieTotal == null){
-            var len = this.data.length;
-            for (var i = 0; i < len; i++){
-                dataSum += this.data[i];
-                if(this.data[i]<0){
-                    return;
-                }
+        var dataSum = 0,
+            dataSumForStartAngle = 0,
+            dataLen = this.data.length;
+            
+        for (var i=0; i<dataLen; i++){
+            dataSumForStartAngle += this.data[i];
+            if(this.data[i]<0){
+                return;
             }
+        }
+        if(this.pieTotal == null){
+            dataSum = dataSumForStartAngle;
         }else{
             dataSum = this.pieTotal;
         }
@@ -537,12 +551,12 @@ function AwesomeChart(canvasElementId){
         
         radius = radius - maxLabelWidth - this.labelMargin;
         
-        var startAngle = this.pieStart* doublePI / dataSum;
+        var startAngle = this.pieStart* doublePI / dataSumForStartAngle;
         var currentAngle = startAngle;
         var endAngle = 0;
         var incAngleBy = 0;
         
-        for(var i=0; i<this.data.length; i++){
+        for(var i=0; i<dataLen; i++){
             context.beginPath();
             incAngleBy = this.data[i] * doublePI / dataSum;
             endAngle = currentAngle + incAngleBy;
@@ -640,7 +654,7 @@ function AwesomeChart(canvasElementId){
         
         // draw the labels:
         
-        var currentAngle = this.pieStart* doublePI / dataSum;
+        var currentAngle = this.pieStart* doublePI / dataSumForStartAngle;
         var endAngle = 0;
         var incAngleBy = 0;
         
@@ -677,6 +691,67 @@ function AwesomeChart(canvasElementId){
             context.restore();
             currentAngle = endAngle;
         }
+    }
+    
+    
+    this.animatePieChart = function(ring){
+        var dataSum = 0,
+            pieTotalReal = this.pieTotal,
+            aw = this,
+            numFrames = this.animationFrames,
+            currentFrame = 0,
+            pieAreaWidth = this.width - this.marginLeft - this.marginRight,
+            pieAreaHeight = this.height - this.marginTop - this.marginBottom,
+            marginTop = this.marginTop,
+            marginLeft = this.marginLeft;
+        
+        if(this.title){
+            pieAreaHeight = pieAreaHeight - this.titleFontHeight - this.titleMargin;
+            marginTop += this.titleFontHeight + this.titleMargin;
+        };
+               
+        for(var i=0; i<this.data.length; i++){
+            dataSum += this.data[i];
+            if(this.data[i]<0){
+                return;
+            }
+        }
+        
+        if(pieTotalReal == null) {
+           pieTotalReal = dataSum;
+        }
+        
+        var updatePieChart = function() {
+            if(currentFrame++ < numFrames) {
+                aw.ctx.clearRect(marginLeft, marginTop, pieAreaWidth, pieAreaHeight);
+                aw.pieTotal = (dataSum * (numFrames / currentFrame)) * (pieTotalReal / dataSum);
+                aw.drawPieChart(ring);
+                
+                // Standard
+                if (typeof(window.requestAnimationFrame) == 'function') {
+                    window.requestAnimationFrame(updatePieChart);
+
+                // IE 10+
+                } else if (typeof(window.msRequestAnimationFrame) == 'function') {
+                    window.msRequestAnimationFrame(updatePieChart);
+
+                // Chrome
+                } else if (typeof(window.webkitRequestAnimationFrame) == 'function') {
+                    window.webkitRequestAnimationFrame(updatePieChart);
+
+                // Firefox
+                } else if (window.mozRequestAnimationFrame) { // Seems rather slow in FF6 - so disabled
+                    window.mozRequestAnimationFrame(updatePieChart);
+
+                // Default fallback to setTimeout
+                } else {
+                    setTimeout(updatePieChart, 16.6666666);
+                }
+            }
+        }        
+
+        updatePieChart();
+
     }
     
     
