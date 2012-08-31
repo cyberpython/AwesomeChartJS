@@ -592,13 +592,20 @@ function AwesomeChart(canvasElementId){
                 
         if(ring){
         
-            
+            var ringCenterRadius = radius/2;
+
+            // draw the inner border
+            context.save();
+            context.beginPath();
+            context.moveTo(centerX+ringCenterRadius, centerY);
+            context.arc(centerX, centerY, ringCenterRadius+this.pieBorderWidth, 0, doublePI, false);
+            context.fillStyle = this.pieStrokeStyle;
+            context.fill();
+            context.restore();
         
             // "cut" the central part:
-            
             context.save();
             
-            var ringCenterRadius = radius/2;
             context.beginPath();
             context.moveTo(centerX+ringCenterRadius, centerY);
             context.arc(centerX, centerY, ringCenterRadius, 0, doublePI, false);
