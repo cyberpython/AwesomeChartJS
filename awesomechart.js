@@ -175,7 +175,7 @@ function AwesomeChart(canvasElementId){
         context.lineCap = 'round';
         var minFactor = Math.min(this.widthSizeFactor, this.heightSizeFactor);
         
-        if(this.proportionalSizes){            
+        if(this.proportionalSizes){
             this.labelMargin = this.labelMargin * this.heightSizeFactor;
             this.dataValueMargin = this.dataValueMargin * this.heightSizeFactor;
             this.titleMargin = this.titleMargin * this.heightSizeFactor;
@@ -201,18 +201,22 @@ function AwesomeChart(canvasElementId){
         
         if(this.chartType == "pie"){
             if(this.animate){
-                this.animatePieChart(false);
+                this.animatePieChart("pie");
             }else{
                 this.drawPieChart(false);
             }
         }else if( (this.chartType == "ring") || (this.chartType == "doughnut")){
             if(this.animate){
-                this.animatePieChart(true);
+                this.animatePieChart("ring");
             }else{
                 this.drawPieChart(true);
             }
         }else if(this.chartType == "exploded pie"){
-            this.drawExplodedPieChart();
+            if(this.animate){
+                this.animatePieChart("exploded");
+            }else{
+                this.drawExplodedPieChart();
+            }
         }else if(this.chartType == "horizontal bars"){
             this.drawVerticalBarChart();
         }else if(this.chartType == "pareto"){
@@ -220,7 +224,14 @@ function AwesomeChart(canvasElementId){
         }else{
             this.drawBarChart();
         }
-        
+
+        this.drawTitleAndBorders();
+
+    }
+
+
+    this.drawTitleAndBorders = function() {
+        var context = this.ctx;
         
         if(this.title!=null){
             //Draw the title:
@@ -244,9 +255,8 @@ function AwesomeChart(canvasElementId){
         
         context.fillStyle = this.backgroundFillStyle;
         context.fillRect(0, 0, this.width, this.height);
-            
-        context.globalCompositeOperation = 'source-over';
         
+        context.globalCompositeOperation = 'source-over';
     }
     
     
@@ -693,81 +703,24 @@ function AwesomeChart(canvasElementId){
         }
     }
     
-    
-    this.animatePieChart = function(ring){
-        var dataSum = 0,
-            pieTotalReal = this.pieTotal,
-            aw = this,
-            numFrames = this.animationFrames,
-            currentFrame = 0,
-            pieAreaWidth = this.width - this.marginLeft - this.marginRight,
-            pieAreaHeight = this.height - this.marginTop - this.marginBottom,
-            marginTop = this.marginTop,
-            marginLeft = this.marginLeft;
-        
-        if(this.title){
-            pieAreaHeight = pieAreaHeight - this.titleFontHeight - this.titleMargin;
-            marginTop += this.titleFontHeight + this.titleMargin;
-        };
-               
-        for(var i=0; i<this.data.length; i++){
-            dataSum += this.data[i];
-            if(this.data[i]<0){
-                return;
-            }
-        }
-        
-        if(pieTotalReal == null) {
-           pieTotalReal = dataSum;
-        }
-        
-        var updatePieChart = function() {
-            if(currentFrame++ < numFrames) {
-                aw.ctx.clearRect(marginLeft, marginTop, pieAreaWidth, pieAreaHeight);
-                aw.pieTotal = (dataSum * (numFrames / currentFrame)) * (pieTotalReal / dataSum);
-                aw.drawPieChart(ring);
-                
-                // Standard
-                if (typeof(window.requestAnimationFrame) == 'function') {
-                    window.requestAnimationFrame(updatePieChart);
 
-                // IE 10+
-                } else if (typeof(window.msRequestAnimationFrame) == 'function') {
-                    window.msRequestAnimationFrame(updatePieChart);
-
-                // Chrome
-                } else if (typeof(window.webkitRequestAnimationFrame) == 'function') {
-                    window.webkitRequestAnimationFrame(updatePieChart);
-
-                // Firefox
-                } else if (window.mozRequestAnimationFrame) { // Seems rather slow in FF6 - so disabled
-                    window.mozRequestAnimationFrame(updatePieChart);
-
-                // Default fallback to setTimeout
-                } else {
-                    setTimeout(updatePieChart, 16.6666666);
-                }
-            }
-        }        
-
-        updatePieChart();
-
-    }
-    
     
     this.drawExplodedPieChart = function(){
         var context = this.ctx;
         context.lineWidth = this.pieBorderWidth;
-
-        var dataSum = 0;
-        if(this.pieTotal == null){
-            var len = this.data.length;
-            for (var i = 0; i < len; i++){
-                dataSum += this.data[i];
-                if(this.data[i]<0){
-                    return;
-                }
+       
+        var dataSum = 0,
+            dataSumForStartAngle = 0,
+            dataLen = this.data.length;
+            
+        for (var i=0; i<dataLen; i++){
+            dataSumForStartAngle += this.data[i];
+            if(this.data[i]<0){
+                return;
             }
+        }
+        if(this.pieTotal == null){
+            dataSum = dataSumForStartAngle;
         }else{
             dataSum = this.pieTotal;
         }
@@ -801,7 +754,7 @@ function AwesomeChart(canvasElementId){
         
         radius = radius - maxLabelWidth - this.labelMargin;
         
-        var currentAngle = this.pieStart* doublePI / dataSum;
+        var currentAngle = this.pieStart* doublePI / dataSumForStartAngle;
         var endAngle = 0;
         var incAngleBy = 0;
         var halfAngle = 0;
@@ -876,6 +829,79 @@ function AwesomeChart(canvasElementId){
             
         }
                 
+    }
+    
+    
+    
+    this.animatePieChart = function(pieType){
+        var dataSum = 0,
+            pieTotalReal = this.pieTotal,
+            aw = this,
+            numFrames = this.animationFrames,
+            currentFrame = 0,
+            pieAreaWidth = this.width - this.marginLeft - this.marginRight,
+            pieAreaHeight = this.height - this.marginTop - this.marginBottom,
+            marginTop = this.marginTop,
+            marginLeft = this.marginLeft;
+        
+        if(this.title){
+            pieAreaHeight = pieAreaHeight - this.titleFontHeight - this.titleMargin;
+            marginTop += this.titleFontHeight + this.titleMargin;
+        };
+               
+        for(var i=0; i<this.data.length; i++){
+            dataSum += this.data[i];
+            if(this.data[i]<0){
+                return;
+            }
+        }
+        
+        if(pieTotalReal == null) {
+           pieTotalReal = dataSum;
+        }
+        
+        var updatePieChart = function() {
+            if(currentFrame++ < numFrames) {
+                if(pieType == "exploded") {
+                    aw.ctx.clearRect(0, 0, aw.width, aw.height);
+                }else{
+                    aw.ctx.clearRect(marginLeft, marginTop, pieAreaWidth, pieAreaHeight);
+                }
+                aw.pieTotal = (dataSum * (numFrames / currentFrame)) * (pieTotalReal / dataSum);
+                if(pieType == "pie") {
+                    aw.drawPieChart(false);
+                }else if(pieType == "ring") {
+                    aw.drawPieChart(true);
+                }else if(pieType == "exploded") {
+                    aw.drawExplodedPieChart();
+                    aw.drawTitleAndBorders();
+                }
+                
+                // Standard
+                if (typeof(window.requestAnimationFrame) == 'function') {
+                    window.requestAnimationFrame(updatePieChart);
+
+                // IE 10+
+                } else if (typeof(window.msRequestAnimationFrame) == 'function') {
+                    window.msRequestAnimationFrame(updatePieChart);
+
+                // Chrome
+                } else if (typeof(window.webkitRequestAnimationFrame) == 'function') {
+                    window.webkitRequestAnimationFrame(updatePieChart);
+
+                // Firefox
+                } else if (window.mozRequestAnimationFrame) { // Seems rather slow in FF6 - so disabled
+                    window.mozRequestAnimationFrame(updatePieChart);
+
+                // Default fallback to setTimeout
+                } else {
+                    setTimeout(updatePieChart, 16.6666666);
+                }
+            }
+        }        
+
+        updatePieChart();
+
     }
     
     
