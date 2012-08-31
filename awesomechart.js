@@ -598,7 +598,7 @@ function AwesomeChart(canvasElementId){
             context.save();
             context.beginPath();
             context.moveTo(centerX+ringCenterRadius, centerY);
-            context.arc(centerX, centerY, ringCenterRadius+this.pieBorderWidth, 0, doublePI, false);
+            context.arc(centerX, centerY, ringCenterRadius+this.pieBorderWidth, startAngle, endAngle, false);
             context.fillStyle = this.pieStrokeStyle;
             context.fill();
             context.restore();
