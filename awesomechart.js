@@ -56,6 +56,9 @@ function AwesomeChart(canvasElementId){
     
     this.chartType = 'bar';
     this.randomColors = false;
+
+    this.animate = false;
+    this.animationFrames = 60;
     
     this.marginTop = 10;
     this.marginBottom = 10;
@@ -197,19 +200,47 @@ function AwesomeChart(canvasElementId){
         }
         
         if(this.chartType == "pie"){
-             this.drawPieChart(false);
+            if(this.animate){
+                this.animatePieChart("pie");
+            }else{
+                this.drawPieChart(false);
+            }
         }else if( (this.chartType == "ring") || (this.chartType == "doughnut")){
-             this.drawPieChart(true);
+            if(this.animate){
+                this.animatePieChart("ring");
+            }else{
+                this.drawPieChart(true);
+            }
         }else if(this.chartType == "exploded pie"){
-             this.drawExplodedPieChart();
+            if(this.animate){
+                this.animatePieChart("exploded");
+            }else{
+                this.drawExplodedPieChart();
+            }
         }else if(this.chartType == "horizontal bars"){
-            this.drawVerticalBarChart();
+            if(this.animate) {
+                this.animateVerticalBarChart();
+            }else{
+                this.drawVerticalBarChart();
+            }
         }else if(this.chartType == "pareto"){
             this.drawParetoChart();
         }else{
-            this.drawBarChart();
+            if(this.animate) {
+                this.animateBarChart();
+            }else{
+                this.drawBarChart();
+            }
         }
+
+        this.drawTitleAndBorders();
         
+    }
+
+
+
+    this.drawTitleAndBorders = function() {
+        var context = this.ctx;
         
         if(this.title!=null){
             //Draw the title:
@@ -233,12 +264,12 @@ function AwesomeChart(canvasElementId){
         
         context.fillStyle = this.backgroundFillStyle;
         context.fillRect(0, 0, this.width, this.height);
-            
-        context.globalCompositeOperation = 'source-over';
         
+        context.globalCompositeOperation = 'source-over';
     }
-    
-    
+
+
+
     this.drawBarChart = function(){
         var context = this.ctx;
         
@@ -347,8 +378,94 @@ function AwesomeChart(canvasElementId){
             x = x + barWidth + this.barHGap;
         }
     }
-    
-    
+
+
+
+    this.animateBarChart = function() {
+        var aw = this,
+            numFrames = this.animationFrames,
+            currentFrame = 0,
+            
+            maxData = this.data.max(),
+            minData = this.data.min(),
+            
+            barMaxTopY = this.marginTop + this.labelMargin + this.labelFontHeight + this.dataValueMargin + this.dataValueFontHeight,
+            barMinTopY = barBottomY = this.height - this.marginBottom;
+        
+        if(this.title!=null){
+            barMaxTopY += this.titleFontHeight + this.titleMargin;
+        }
+        
+        if(minData<0){
+            barMinTopY = this.height - this.marginBottom - this.labelMargin - this.labelFontHeight - this.dataValueMargin - this.dataValueFontHeight;
+            
+            barBottomY = barMinTopY + ((this.height - this.marginBottom -  barMaxTopY - this.labelMargin - this.labelFontHeight - this.dataValueMargin - this.dataValueFontHeight) * minData) / (Math.abs(minData)+maxData);
+        }
+        
+        var chartAreaHeight = barMinTopY - barMaxTopY,
+            changeOfMarginBottom = 0,
+            changeOfMarginTop = 0;
+            
+        var belowZeroMaxBarHeight = 0;
+        if(minData<0){
+            var maxBarHeight = Math.max(Math.abs(barBottomY - barMaxTopY), Math.abs(barBottomY - barMinTopY)),
+                maxBarAbsData = Math.max(Math.abs(minData), Math.abs(maxData));
+            belowZeroMaxBarHeight = Math.abs(minData * maxBarHeight / maxBarAbsData + this.labelMargin + this.labelFontHeight);
+        }
+        
+        this.marginBottom += belowZeroMaxBarHeight;
+        if(this.title!=null){
+            this.titleMargin += chartAreaHeight - belowZeroMaxBarHeight;
+        }else{
+            this.marginTop += chartAreaHeight - belowZeroMaxBarHeight;
+        }
+        changeOfMarginBottom = belowZeroMaxBarHeight / numFrames;
+        changeOfMarginTop = (chartAreaHeight - belowZeroMaxBarHeight) / numFrames;
+        
+        var updateBarChart = function() {
+            if(currentFrame++ < numFrames) {
+
+                aw.marginBottom -= changeOfMarginBottom;
+                
+                if(aw.title!=null){
+                    aw.titleMargin -= changeOfMarginTop;
+                }else{
+                    aw.marginTop -= changeOfMarginTop;
+                }
+                
+                aw.ctx.clearRect(0, 0, aw.width, aw.height);
+                aw.drawBarChart();
+                aw.drawTitleAndBorders();                
+                
+                // Standard
+                if (typeof(window.requestAnimationFrame) == 'function') {
+                    window.requestAnimationFrame(updateBarChart);
+
+                // IE 10+
+                } else if (typeof(window.msRequestAnimationFrame) == 'function') {
+                    window.msRequestAnimationFrame(updateBarChart);
+
+                // Chrome
+                } else if (typeof(window.webkitRequestAnimationFrame) == 'function') {
+                    window.webkitRequestAnimationFrame(updateBarChart);
+
+                // Firefox
+                } else if (window.mozRequestAnimationFrame) { // Seems rather slow in FF6 - so disabled
+                    window.mozRequestAnimationFrame(updateBarChart);
+
+                // Default fallback to setTimeout
+                } else {
+                    setTimeout(updateBarChart, 16.6666666);
+                }
+            }
+        }        
+
+        updateBarChart();
+        
+    }
+
+
+
     this.drawVerticalBarChart = function(){
         var context = this.ctx;
 
@@ -363,12 +480,12 @@ function AwesomeChart(canvasElementId){
         var maxData = this.data.max();
         var minData = this.data.min();
 
+        var marginLeft = this.marginLeft;
         if(this.title!=null){
-            this.marginLeft += this.titleFontHeight + this.titleMargin;
+            marginLeft += this.titleFontHeight + this.titleMargin;
         }
         
-        var barWidth = (this.width - this.marginLeft
-            - this.marginRight - (n-1) * this.barHGap) / n;
+        var barWidth = (this.width - marginLeft - this.marginRight - (n-1) * this.barHGap) / n;
 
         context.font = this.labelFontStyle + ' ' + this.labelFontHeight + 'px '+ this.labelFont;
         var maxLabelWidth = 0;
@@ -408,11 +525,12 @@ function AwesomeChart(canvasElementId){
         var maxBarHeight = Math.max(Math.abs(barBottomY - barMaxTopY), Math.abs(barBottomY - barMinTopY));
         var maxBarAbsData = Math.max(Math.abs(minData), Math.abs(maxData));
         
-        var x = this.marginLeft;
+        var x = marginLeft;
         var y = barBottomY;
         var barHeight = 0;
                 
         var di = 0;
+        
         for(var i=0; i<this.data.length; i++){
             di = this.data[i];
             
@@ -455,7 +573,7 @@ function AwesomeChart(canvasElementId){
 
 
             context.save();
-            context.translate(x + barWidth/2 , barBottomY - barHeight);
+            context.translate(x + barWidth/2, barBottomY - barHeight);
             context.rotate(-Math.PI/2);
             context.textBaseline = 'top';
             if(this.labels[i]){
@@ -480,30 +598,154 @@ function AwesomeChart(canvasElementId){
                 context.textAlign = 'right';
                 context.fillText(di, -this.labelMargin, 0);
             }
-
-            context.restore();
             
+            context.restore();
             
             //Update x:
             
             x = x + barWidth + this.barHGap;
         }
+        
         context.restore();
+        
     }
+
+    
+    
+    this.animateVerticalBarChart = function() {
+        var aw = this,
+            numFrames = this.animationFrames,
+            currentFrame = 0,
+            
+            maxData = this.data.max(),
+            minData = this.data.min(),
+            dataLen = this.data.length,
+            
+            context = this.ctx,
+            
+            marginLeft = this.marginLeft
+            marginTop = this.marginTop
+            marginTopCurrent = 0;
+
+
+        if(this.title!=null){
+             marginLeft += this.titleFontHeight + this.titleMargin;
+        }
+        
+        var barWidth = (this.width - marginLeft - this.marginRight - (dataLen-1) * this.barHGap) / dataLen;
+
+        context.font = this.labelFontStyle + ' ' + this.labelFontHeight + 'px '+ this.labelFont;
+        var maxLabelWidth = 0;
+        var labelWidth = 0;
+        for(var i=0; i<this.labels.length; i++){
+            labelWidth = context.measureText(this.labels[i]).width;
+            if(labelWidth>maxLabelWidth){
+                maxLabelWidth = labelWidth;
+            }
+        }
+
+        context.font = this.dataValueFontStyle + ' ' + this.dataValueFontHeight + 'px '+ this.dataValueFont;
+        var maxDataValueWidth = 0;
+        var dataValueWidth = 0;
+        for(var i=0; i<dataLen; i++){
+            dataValueWidth = context.measureText(this.data[i]).width;
+            if(dataValueWidth>maxDataValueWidth){
+                maxDataValueWidth = dataValueWidth;
+            }
+        }
+
+        var barMaxTopY = this.marginTop + Math.max( (this.labelMargin + maxLabelWidth), (this.dataValueMargin + maxDataValueWidth) );
+        
+        var barMinTopY = this.height - this.marginBottom;
+        
+        var barBottomY = this.height - this.marginBottom;
+        
+        if(minData<0){
+        
+            barMinTopY = this.height - this.marginBottom - this.labelMargin - this.labelFontHeight - this.dataValueMargin - this.dataValueFontHeight;
+            
+            barBottomY =  barMinTopY + ((this.height - this.marginBottom -  barMaxTopY - this.labelMargin - this.labelFontHeight - this.dataValueMargin - this.dataValueFontHeight) * minData) / (Math.abs(minData)+maxData);
+            
+        }
+        
+        
+        var maxBarHeight = Math.max(Math.abs(barBottomY - barMaxTopY), Math.abs(barBottomY - barMinTopY));
+        var maxBarAbsData = Math.max(Math.abs(minData), Math.abs(maxData));
+        
+
+        var belowZeroMaxBarHeight = 0;
+        if(minData<0){
+            belowZeroMaxBarHeight = Math.abs(minData * maxBarHeight / maxBarAbsData);
+        }
+        
+        var chartAreaHeight = maxData * maxBarHeight / maxBarAbsData + belowZeroMaxBarHeight,
+            changeOfMarginBottom = 0,
+            changeOfMarginTop = 0;
+        
+        this.marginBottom += belowZeroMaxBarHeight;
+        this.marginTop += chartAreaHeight - belowZeroMaxBarHeight;
+        changeOfMarginBottom = belowZeroMaxBarHeight / numFrames;
+        changeOfMarginTop = (chartAreaHeight - belowZeroMaxBarHeight) / numFrames;
+        
+        var updateVerticalBarChart = function() {
+            if(currentFrame++ < numFrames) {
+
+                aw.marginBottom -= changeOfMarginBottom;
+                aw.marginTop -= changeOfMarginTop;
+                
+                aw.ctx.clearRect(0, 0, aw.width, aw.height);
+                aw.drawVerticalBarChart();
+                
+                marginTopCurrent = aw.marginTop;
+                aw.marginTop = marginTop;
+                aw.drawTitleAndBorders();
+                aw.marginTop = marginTopCurrent;
+                
+                // Standard
+                if (typeof(window.requestAnimationFrame) == 'function') {
+                    window.requestAnimationFrame(updateVerticalBarChart);
+
+                // IE 10+
+                } else if (typeof(window.msRequestAnimationFrame) == 'function') {
+                    window.msRequestAnimationFrame(updateVerticalBarChart);
+
+                // Chrome
+                } else if (typeof(window.webkitRequestAnimationFrame) == 'function') {
+                    window.webkitRequestAnimationFrame(updateVerticalBarChart);
+
+                // Firefox
+                } else if (window.mozRequestAnimationFrame) { // Seems rather slow in FF6 - so disabled
+                    window.mozRequestAnimationFrame(updateVerticalBarChart);
+
+                // Default fallback to setTimeout
+                } else {
+                    setTimeout(updateVerticalBarChart, 16.6666666);
+                }
+            }
+        }        
+
+        updateVerticalBarChart();
+        
+    }
+
+
 
     this.drawPieChart = function(ring){
         var context = this.ctx;
         context.lineWidth = this.pieBorderWidth;
 
-        var dataSum = 0;
-        if(this.pieTotal == null){
-            var len = this.data.length;
-            for (var i = 0; i < len; i++){
-                dataSum += this.data[i];
-                if(this.data[i]<0){
-                    return;
-                }
+        var dataSum = 0,
+            dataSumForStartAngle = 0,
+            dataLen = this.data.length;
+            
+        for (var i=0; i<dataLen; i++){
+            dataSumForStartAngle += this.data[i];
+            if(this.data[i]<0){
+                return;
             }
+        }
+        if(this.pieTotal == null){
+            dataSum = dataSumForStartAngle;
         }else{
             dataSum = this.pieTotal;
         }
@@ -537,12 +779,12 @@ function AwesomeChart(canvasElementId){
         
         radius = radius - maxLabelWidth - this.labelMargin;
         
-        var startAngle = this.pieStart* doublePI / dataSum;
+        var startAngle = this.pieStart* doublePI / dataSumForStartAngle;
         var currentAngle = startAngle;
         var endAngle = 0;
         var incAngleBy = 0;
         
-        for(var i=0; i<this.data.length; i++){
+        for(var i=0; i<dataLen; i++){
             context.beginPath();
             incAngleBy = this.data[i] * doublePI / dataSum;
             endAngle = currentAngle + incAngleBy;
@@ -592,13 +834,20 @@ function AwesomeChart(canvasElementId){
                 
         if(ring){
         
-            
+            var ringCenterRadius = radius/2;
+
+            // draw the inner border
+            context.save();
+            context.beginPath();
+            context.moveTo(centerX+ringCenterRadius, centerY);
+            context.arc(centerX, centerY, ringCenterRadius+this.pieBorderWidth, startAngle, endAngle, false);
+            context.fillStyle = this.pieStrokeStyle;
+            context.fill();
+            context.restore();
         
             // "cut" the central part:
-            
             context.save();
             
-            var ringCenterRadius = radius/2;
             context.beginPath();
             context.moveTo(centerX+ringCenterRadius, centerY);
             context.arc(centerX, centerY, ringCenterRadius, 0, doublePI, false);
@@ -633,7 +882,7 @@ function AwesomeChart(canvasElementId){
         
         // draw the labels:
         
-        var currentAngle = this.pieStart* doublePI / dataSum;
+        var currentAngle = this.pieStart* doublePI / dataSumForStartAngle;
         var endAngle = 0;
         var incAngleBy = 0;
         
@@ -672,20 +921,24 @@ function AwesomeChart(canvasElementId){
         }
     }
     
+
     
     this.drawExplodedPieChart = function(){
         var context = this.ctx;
         context.lineWidth = this.pieBorderWidth;
-
-        var dataSum = 0;
-        if(this.pieTotal == null){
-            var len = this.data.length;
-            for (var i = 0; i < len; i++){
-                dataSum += this.data[i];
-                if(this.data[i]<0){
-                    return;
-                }
+       
+        var dataSum = 0,
+            dataSumForStartAngle = 0,
+            dataLen = this.data.length;
+            
+        for (var i=0; i<dataLen; i++){
+            dataSumForStartAngle += this.data[i];
+            if(this.data[i]<0){
+                return;
             }
+        }
+        if(this.pieTotal == null){
+            dataSum = dataSumForStartAngle;
         }else{
             dataSum = this.pieTotal;
         }
@@ -719,7 +972,7 @@ function AwesomeChart(canvasElementId){
         
         radius = radius - maxLabelWidth - this.labelMargin;
         
-        var currentAngle = this.pieStart* doublePI / dataSum;
+        var currentAngle = this.pieStart* doublePI / dataSumForStartAngle;
         var endAngle = 0;
         var incAngleBy = 0;
         var halfAngle = 0;
@@ -794,6 +1047,76 @@ function AwesomeChart(canvasElementId){
             
         }
                 
+    }
+
+
+    
+    this.animatePieChart = function(pieType){
+        var dataSum = 0,
+            pieTotalReal = this.pieTotal,
+            aw = this,
+            numFrames = this.animationFrames,
+            currentFrame = 0,
+            pieAreaWidth = this.width - this.marginLeft - this.marginRight,
+            pieAreaHeight = this.height - this.marginTop - this.marginBottom,
+            marginTop = this.marginTop,
+            marginLeft = this.marginLeft;
+        
+        if(this.title){
+            pieAreaHeight = pieAreaHeight - this.titleFontHeight - this.titleMargin;
+            marginTop += this.titleFontHeight + this.titleMargin;
+        };
+               
+        for(var i=0; i<this.data.length; i++){
+            dataSum += this.data[i];
+            if(this.data[i]<0){
+                return;
+            }
+        }
+        
+        if(pieTotalReal == null) {
+           pieTotalReal = dataSum;
+        }
+        
+        var updatePieChart = function() {
+            if(currentFrame++ < numFrames) {
+                
+                aw.ctx.clearRect(0, 0, aw.width, aw.height);
+                aw.pieTotal = (dataSum * (numFrames / currentFrame)) * (pieTotalReal / dataSum);
+                if(pieType == "pie") {
+                    aw.drawPieChart(false);
+                }else if(pieType == "ring") {
+                    aw.drawPieChart(true);
+                }else if(pieType == "exploded") {
+                    aw.drawExplodedPieChart();
+                }
+                aw.drawTitleAndBorders();
+                
+                // Standard
+                if (typeof(window.requestAnimationFrame) == 'function') {
+                    window.requestAnimationFrame(updatePieChart);
+
+                // IE 10+
+                } else if (typeof(window.msRequestAnimationFrame) == 'function') {
+                    window.msRequestAnimationFrame(updatePieChart);
+
+                // Chrome
+                } else if (typeof(window.webkitRequestAnimationFrame) == 'function') {
+                    window.webkitRequestAnimationFrame(updatePieChart);
+
+                // Firefox
+                } else if (window.mozRequestAnimationFrame) { // Seems rather slow in FF6 - so disabled
+                    window.mozRequestAnimationFrame(updatePieChart);
+
+                // Default fallback to setTimeout
+                } else {
+                    setTimeout(updatePieChart, 16.6666666);
+                }
+            }
+        }        
+
+        updatePieChart();
+
     }
     
     
